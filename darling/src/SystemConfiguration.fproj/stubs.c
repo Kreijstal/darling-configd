@@ -58,52 +58,78 @@ SCNetworkConnectionRef SCNetworkConnectionCreateWithServiceID(CFAllocatorRef all
 	return NULL;
 }
 
+/*
+ * Reachability: a target is a CF dictionary holding what it was created
+ * from, so CFRetain/CFRelease work on it.  Every target reports itself
+ * reachable; since that never changes, a scheduled callback never fires.
+ */
 CFTypeID SCNetworkReachabilityGetTypeID(void)
 {
-    STUB();
-	return 0;
+	return CFDictionaryGetTypeID();
+}
+
+static SCNetworkReachabilityRef __SCNetworkReachabilityCreate(CFAllocatorRef allocator, CFStringRef key, CFTypeRef value)
+{
+	CFMutableDictionaryRef target = CFDictionaryCreateMutable(allocator, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+	if (target != NULL && value != NULL)
+		CFDictionarySetValue(target, key, value);
+	return (SCNetworkReachabilityRef) target;
 }
 
 Boolean SCNetworkReachabilityScheduleWithRunLoop(SCNetworkReachabilityRef ref, CFRunLoopRef rl, CFStringRef rlMode)
 {
-    STUB();
-	return 0;
+	return ref != NULL;
 }
 
 Boolean SCNetworkReachabilityUnscheduleFromRunLoop(SCNetworkReachabilityRef ref, CFRunLoopRef rl, CFStringRef rlMode)
 {
-    STUB();
-	return 0;
+	return ref != NULL;
 }
 
 Boolean SCNetworkReachabilitySetCallback(SCNetworkReachabilityRef target, SCNetworkReachabilityCallBack cb, SCNetworkReachabilityContext* ctxt)
 {
-    STUB();
-	return 0;
+	return target != NULL;
+}
+
+Boolean SCNetworkReachabilitySetDispatchQueue(SCNetworkReachabilityRef target, dispatch_queue_t queue)
+{
+	return target != NULL;
 }
 
 Boolean SCNetworkReachabilityGetFlags(SCNetworkReachabilityRef target, SCNetworkReachabilityFlags* flags)
 {
-    STUB();
-	return 0;
+	if (target == NULL || flags == NULL)
+		return FALSE;
+	*flags = kSCNetworkReachabilityFlagsReachable;
+	return TRUE;
 }
 
 SCNetworkReachabilityRef SCNetworkReachabilityCreateWithName(CFAllocatorRef allocator, const char* nodeName)
 {
-    STUB();
-	return NULL;
+	if (nodeName == NULL)
+		return NULL;
+	CFStringRef name = CFStringCreateWithCString(allocator, nodeName, kCFStringEncodingUTF8);
+	SCNetworkReachabilityRef target = __SCNetworkReachabilityCreate(allocator, CFSTR("name"), name);
+	if (name != NULL)
+		CFRelease(name);
+	return target;
 }
 
 SCNetworkReachabilityRef SCNetworkReachabilityCreateWithAddressPair(CFAllocatorRef allocator, const struct sockaddr* localAddress, const struct sockaddr* remoteAddress)
 {
-    STUB();
-	return NULL;
+	const struct sockaddr* address = remoteAddress != NULL ? remoteAddress : localAddress;
+	if (address == NULL)
+		return NULL;
+	CFDataRef data = CFDataCreate(allocator, (const UInt8 *) address, address->sa_len);
+	SCNetworkReachabilityRef target = __SCNetworkReachabilityCreate(allocator, CFSTR("address"), data);
+	if (data != NULL)
+		CFRelease(data);
+	return target;
 }
 
 SCNetworkReachabilityRef SCNetworkReachabilityCreateWithAddress(CFAllocatorRef allocator, const struct sockaddr* remoteAddress)
 {
-    STUB();
-	return NULL;
+	return SCNetworkReachabilityCreateWithAddressPair(allocator, NULL, remoteAddress);
 }
 
 CFStringRef SCDynamicStoreKeyCreateNetworkGlobalEntity(CFAllocatorRef allocator, CFStringRef domain, CFStringRef entity)
