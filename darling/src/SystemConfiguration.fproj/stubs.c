@@ -12,6 +12,25 @@ static const char* __ipv4_dummy = "ipv4";
 const SCNetworkInterfaceRef kSCNetworkInterfaceIPv4 = (SCNetworkInterfaceRef)&__ipv4_dummy;
 const CFStringRef kSCDynamicStoreUseSessionKeys = CFSTR("UseSessionKeys");
 
+CFStringRef SCNetworkInterfaceGetInterfaceType(SCNetworkInterfaceRef interface)
+{
+    STUB();
+    return NULL;
+}
+
+SCPreferencesRef SCPreferencesCreate(CFAllocatorRef allocator, CFStringRef name,
+                                     CFStringRef prefsID)
+{
+    STUB();
+    return NULL;
+}
+
+CFDictionaryRef SCPreferencesPathGetValue(SCPreferencesRef prefs, CFStringRef path)
+{
+    STUB();
+    return NULL;
+}
+
 CFTypeID SCNetworkConnectionGetTypeID(void)
 {
     STUB();
